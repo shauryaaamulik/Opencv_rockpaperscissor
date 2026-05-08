@@ -2,17 +2,17 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-#include <chrono> // For the countdown timer
-#include <cstdlib> // For random numbers
-#include <ctime>   // For random seed
+#include <chrono> 
+#include <cstdlib>
+#include <ctime>   
 
 using namespace cv;
 using namespace std;
 
-// Enum to make our game logic easy to read
+
 enum Move { ROCK, PAPER, SCISSORS, UNKNOWN };
 
-// Helper function to turn the enum into text
+
 string moveToString(Move m) {
     if (m == ROCK) return "Rock";
     if (m == PAPER) return "Paper";
@@ -21,7 +21,7 @@ string moveToString(Move m) {
 }
 
 int main() {
-    // Seed the random number generator for the computer's moves
+    
     srand(time(0));
 
     VideoCapture cap(0);
@@ -33,7 +33,7 @@ int main() {
     Mat frame, roi, hsv, mask;
     Rect roi_rect(50, 50, 400, 400);
 
-    // --- GAME STATE VARIABLES ---
+   
     bool isPlaying = false;
     auto startTime = chrono::steady_clock::now();
     string gameStateText = "Press SPACE to start!";
@@ -51,7 +51,7 @@ int main() {
 
         flip(frame, frame, 1);
         
-        // Draw the ROI where the player needs to put their hand
+        
         rectangle(frame, roi_rect, Scalar(0, 255, 0), 2);
         roi = frame(roi_rect);
 
@@ -65,7 +65,7 @@ int main() {
         vector<vector<Point>> contours;
         findContours(mask, contours, RETR_TREE, CHAIN_APPROX_SIMPLE);
 
-        int finger_gaps = -1; // Default to -1 (meaning no hand/gesture detected)
+        int finger_gaps = -1; 
         bool handDetected = false;
 
         if (!contours.empty()) {
@@ -94,7 +94,7 @@ int main() {
                     vector<Vec4i> defects;
                     convexityDefects(max_contour, hull_indices, defects);
 
-                    finger_gaps = 0; // Hand detected, start counting gaps
+                    finger_gaps = 0; 
 
                     for (const auto& defect : defects) {
                         Point ptStart = max_contour[defect[0]];
@@ -118,16 +118,16 @@ int main() {
             }
         }
 
-        // --- GAME LOGIC ---
+        
         if (!isPlaying) {
-            // Waiting for player to press space
+            
             putText(frame, gameStateText, Point(50, 40), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 255, 255), 2);
             if (resultText != "") {
                 putText(frame, resultText, Point(50, 480), FONT_HERSHEY_SIMPLEX, 1.5, Scalar(0, 255, 0), 3);
                 putText(frame, "Comp chose: " + compMoveText, Point(50, 530), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 255, 255), 2);
             }
         } else {
-            // Calculate time elapsed since spacebar was pressed
+            
             auto currentTime = chrono::steady_clock::now();
             double elapsedSeconds = chrono::duration_cast<chrono::milliseconds>(currentTime - startTime).count() / 1000.0;
 
@@ -140,9 +140,9 @@ int main() {
             } else if (elapsedSeconds < 3.5) {
                 gameStateText = "SHOOT!";
                 
-                // Read the gesture ONCE during this 0.5 second window
+                
                 if (playerMove == UNKNOWN) {
-                    // Computer makes a random choice (0 = Rock, 1 = Paper, 2 = Scissors)
+                   
                     int randomChoice = rand() % 3;
                     if (randomChoice == 0) computerMove = ROCK;
                     else if (randomChoice == 1) computerMove = PAPER;
@@ -150,18 +150,18 @@ int main() {
 
                     compMoveText = moveToString(computerMove);
 
-                    // Determine Player Move based on gaps
+                    
                     if (!handDetected) {
                         playerMove = UNKNOWN;
                     } else if (finger_gaps == 0) {
                         playerMove = ROCK;
                     } else if (finger_gaps == 1 || finger_gaps == 2) {
-                        playerMove = SCISSORS; // 1 or 2 gaps is usually a peace sign
+                        playerMove = SCISSORS; 
                     } else if (finger_gaps >= 3) {
-                        playerMove = PAPER; // 3 or 4 gaps is an open hand
+                        playerMove = PAPER; 
                     }
 
-                    // Determine Winner
+                    
                     if (playerMove == UNKNOWN) {
                         resultText = "No hand detected!";
                     } else if (playerMove == computerMove) {
@@ -175,15 +175,15 @@ int main() {
                     }
                 }
             } else {
-                // Timer finished, reset state to show results
+                
                 isPlaying = false;
                 gameStateText = "Press SPACE to play again";
             }
 
-            // Display current countdown or SHOOT text
+            
             putText(frame, gameStateText, Point(50, 40), FONT_HERSHEY_SIMPLEX, 1.5, Scalar(0, 0, 255), 3);
             
-            // Show real-time gesture reading so the player knows what the camera sees
+            
             string currentGesture = "Reading: ";
             if (finger_gaps == 0) currentGesture += "Rock";
             else if (finger_gaps == 1 || finger_gaps == 2) currentGesture += "Scissors";
@@ -197,8 +197,8 @@ int main() {
         imshow("Skin Mask", mask);
 
         char key = (char)waitKey(30);
-        if (key == 27) break; // ESC to quit
-        if (key == ' ' && !isPlaying) { // SPACE to start
+        if (key == 27) break; 
+        if (key == ' ' && !isPlaying) { 
             isPlaying = true;
             startTime = chrono::steady_clock::now();
             playerMove = UNKNOWN;
